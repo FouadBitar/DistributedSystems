@@ -11,63 +11,47 @@ import java.rmi.registry.LocateRegistry;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
-/**
- * 1)
- * On startup it should be given the list of ResourceManagers 
- * and implements the same interface as the ResourceManager
- * 
- * 2)
- * Create ResourceManagers for each type of resource (one for each of flights, cars,
- * and rooms). For simplicity, you can keep only one implementation providing the
- * entire interface – the Middleware will only call the flight-methods on the flightResourceManager
- * 
- * 3)
- * Decide how to handle customers – either with an additional server, through replication
- * at the ResourceManagers, or at the Middleware (which then becomes a type of
- * ResourceManager)
- * 
- * 4)
- * Add an additional function bundle to the Middleware which reserves a set of flights,
- * and possibly a car and/or room at the final destination
- */
+
+
 
 /**
- * - the middleware object will implement the interface, for each method it will identify which
- *      resource manager handles the request, then forward the request to that resource manager.
- *      Each resource manager has its own data (stored in hashmap), the list of resource managers is
- *      stored in the middleware object.
- * 
- * 
- * - The middleware object is the main server object that is binded to the rmi registry for all the clients to communicate with.
+ * - Created another server "Customers" as the resource manager for customers. It's job is 
+ * 		to store the customers data.
  */
-
-
-public class RMIMiddleware extends ResourceManager {
+public class RMIMiddleware implements IResourceManager {
 
     private static final int s_serverPort = 1095;
     private static String s_serverName = "Server";
 	private static String s_rmiPrefix = "group_49_";
-	private static String s_serverHost = "localhost";
+	// private static String s_serverHost = "localhost";
 	
 	// Resource Managers
+	// private static Vector<String> serverNames;
+	private static Vector<String> serverHosts;
 	private static Vector<String> serverNames;
 	private static HashMap<String, IResourceManager> resource_managers_hash;
     
     public static void main(String args[])
 	{
+		// Initialize variables
+		serverHosts = new Vector<String>();
+		serverNames = new Vector<String>();
+		serverNames.add("Flights");
+		serverNames.add("Cars");
+		serverNames.add("Rooms");
+		resource_managers_hash = new HashMap<String, IResourceManager>();
+
 		// Retrieve the resource manager server names from command line arguments
 		if (args.length == 3)
 		{
-			serverNames.add(args[0]);
-			System.out.println("" + args[0]);
-			serverNames.add(args[1]);
-			System.out.println("" + args[1]);
-			serverNames.add(args[2]);
-			System.out.println("" + args[2]);
+			serverHosts.add(args[0]);
+			serverHosts.add(args[1]);
+			serverHosts.add(args[2]);
+			
 		}
 		else
 		{
-			System.err.println((char)27 + "need 3 arguments exactly");
+			System.err.println((char)27 + "need 4 arguments exactly");
 			System.exit(1);
 		}
 
@@ -75,10 +59,10 @@ public class RMIMiddleware extends ResourceManager {
 		// Create the RMI server entry 
 		try {
 			// Create a new Server object
-			RMIMiddleware server = new RMIMiddleware(s_serverName);
+			RMIMiddleware server = new RMIMiddleware();
 
 			// Get references to RMI Resource Manager servers (i.e. Flights, Cars, Rooms)
-			server.connectToResourceManagers(serverNames);
+			server.connectToResourceManagers(serverHosts, serverNames);
 			
 
 			// Dynamically generate the stub (client proxy)
@@ -122,10 +106,12 @@ public class RMIMiddleware extends ResourceManager {
 	}
 	
 	// Loop through list of resource manager server names, retrieve their references and add to hash map
-	public void connectToResourceManagers(Vector<String> resourceManagerNames)
+	public void connectToResourceManagers(Vector<String> serverHosts, Vector<String> serverNames)
 	{
-		for(String resourceManagerName : resourceManagerNames) {
-			connectToResourceManager(s_serverHost, s_serverPort, resourceManagerName);
+		int i = 0;
+		for(String host : serverHosts) {
+			connectToResourceManager(host, s_serverPort, serverNames.elementAt(i));
+			i++;
 		}
 	}
 
@@ -157,9 +143,246 @@ public class RMIMiddleware extends ResourceManager {
 		}
 	}
 
-	public RMIMiddleware(String name)
-	{
-		super(name);
+
+	// IMPLEMENTATION
+	// --------------
+	// --------------
+	// --------------
+
+	public boolean addFlight(int id, int flightNum, int flightSeats, int flightPrice) throws RemoteException {
+
+		IResourceManager flight_rm = resource_managers_hash.get("Flights");
+		boolean result = flight_rm.addFlight(id, flightNum, flightSeats, flightPrice);
+
+		return result;
 	}
+
+	public boolean addCars(int id, String location, int numCars, int price) throws RemoteException {
+
+		IResourceManager car_rm = resource_managers_hash.get("Cars");
+		boolean result = car_rm.addCars(id, location, numCars, price);
+
+		return result;
+	}
+
+    public boolean addRooms(int id, String location, int numRooms, int price) throws RemoteException {
+
+		IResourceManager room_rm = resource_managers_hash.get("Rooms");
+		boolean result = room_rm.addRooms(id, location, numRooms, price);
+
+		return result;
+	} 			    
+
+    public boolean deleteFlight(int id, int flightNum) throws RemoteException {
+
+		IResourceManager flight_rm = resource_managers_hash.get("Flights");
+		boolean result = flight_rm.deleteFlight(id, flightNum);
+
+		return result;
+	}
+
+	public boolean deleteCars(int id, String location) throws RemoteException {
+		
+		IResourceManager car_rm = resource_managers_hash.get("Cars");
+		boolean result = car_rm.deleteCars(id, location);
+
+		return result;
+	}
+
+
+    public boolean deleteRooms(int id, String location) throws RemoteException {
+		
+		IResourceManager room_rm = resource_managers_hash.get("Rooms");
+		boolean result = room_rm.deleteRooms(id, location);
+
+		return result;
+	}
+
+	public int queryFlight(int id, int flightNumber) throws RemoteException {
+		
+		IResourceManager flight_rm = resource_managers_hash.get("Flights");
+		int result = flight_rm.queryFlight(id, flightNumber);
+
+		return result;
+	}
+
+
+    public int queryCars(int id, String location) throws RemoteException {
+		
+		IResourceManager car_rm = resource_managers_hash.get("Cars");
+		int result = car_rm.queryCars(id, location);
+
+		return result;
+	}
+
+    public int queryRooms(int id, String location) throws RemoteException {
+		
+		IResourceManager room_rm = resource_managers_hash.get("Rooms");
+		int result = room_rm.queryRooms(id, location);
+
+		return result;
+	}
+
+	public int queryFlightPrice(int id, int flightNumber) throws RemoteException {
+
+		IResourceManager flight_rm = resource_managers_hash.get("Flights");
+		int result = flight_rm.queryFlightPrice(id, flightNumber);
+
+		return result;
+	}
+
+
+    public int queryCarsPrice(int id, String location) throws RemoteException {
+		
+		IResourceManager car_rm = resource_managers_hash.get("Cars");
+		int result = car_rm.queryCarsPrice(id, location);
+
+		return result;
+	}
+
+
+    public int queryRoomsPrice(int id, String location) throws RemoteException {
+		
+		IResourceManager room_rm = resource_managers_hash.get("Rooms");
+		int result = room_rm.queryRoomsPrice(id, location);
+
+		return result;
+	}
+
+	 
+	// CUSTOMERS
+	// --------------
+	// --------------
+	// --------------
+
+    public int newCustomer(int id) throws RemoteException {
+
+		IResourceManager flight_rm = resource_managers_hash.get("Flights");
+		IResourceManager car_rm = resource_managers_hash.get("Cars");
+		IResourceManager room_rm = resource_managers_hash.get("Rooms");
+
+		// create the customer with its unique cid
+		int cid = flight_rm.newCustomer(id);
+
+		// then replicate the customer at the other resource managers
+		car_rm.newCustomer(id, cid);
+		room_rm.newCustomer(id, cid);
+
+		return cid;
+	}
+	
+	
+    public boolean newCustomer(int id, int cid) throws RemoteException {
+
+		IResourceManager flight_rm = resource_managers_hash.get("Flights");
+		IResourceManager car_rm = resource_managers_hash.get("Cars");
+		IResourceManager room_rm = resource_managers_hash.get("Rooms");
+
+		// create the customer
+		boolean result = flight_rm.newCustomer(id, cid);
+		
+		// replicate the customer at the other resource managers
+		car_rm.newCustomer(id, cid);
+		room_rm.newCustomer(id, cid);
+
+		return result;
+	}
+    
+    
+    public boolean deleteCustomer(int id, int customerID) throws RemoteException {
+		
+		IResourceManager flight_rm = resource_managers_hash.get("Flights");
+		IResourceManager car_rm = resource_managers_hash.get("Cars");
+		IResourceManager room_rm = resource_managers_hash.get("Rooms");
+
+		// delete the customer on all the resource managers
+		boolean result = flight_rm.deleteCustomer(id, customerID);
+		car_rm.deleteCustomer(id, customerID);
+		room_rm.deleteCustomer(id, customerID);
+
+		return result;
+	}
+
+
+    public String queryCustomerInfo(int id, int customerID) throws RemoteException {
+		
+		IResourceManager flight_rm = resource_managers_hash.get("Flights");
+		IResourceManager car_rm = resource_managers_hash.get("Cars");
+		IResourceManager room_rm = resource_managers_hash.get("Rooms");
+
+		// since the information of the flights, cars and rooms is on separate servers, we can display the info from each one
+		String flight_bill = flight_rm.queryCustomerInfo(id, customerID);
+		String car_bill = car_rm.queryCustomerInfo(id, customerID);
+		String room_bill = room_rm.queryCustomerInfo(id, customerID);
+
+		// structure the results
+		String final_bill = "Flight Bill: \n" + flight_bill + "Car Bill: \n" + car_bill + "Room Bill: \n" + room_bill;
+
+		return final_bill;
+	}
+
+
+    public boolean reserveFlight(int id, int customerID, int flightNumber) throws RemoteException {
+
+		IResourceManager flight_rm = resource_managers_hash.get("Flights");
+		boolean result = flight_rm.reserveFlight(id, customerID, flightNumber);
+
+		return result;
+	}
+
+
+    public boolean reserveCar(int id, int customerID, String location) throws RemoteException {
+		
+		IResourceManager car_rm = resource_managers_hash.get("Cars");
+		boolean result = car_rm.reserveCar(id, customerID, location);
+
+		return result;
+	}
+
+	
+    public boolean reserveRoom(int id, int customerID, String location) throws RemoteException {
+		
+		IResourceManager room_rm = resource_managers_hash.get("Rooms");
+		boolean result = room_rm.reserveRoom(id, customerID, location);
+
+		return result;
+	}
+
+ 
+    public boolean bundle(int id, int customerID, Vector<String> flightNumbers, String location, boolean car, boolean room) throws RemoteException {
+		
+		IResourceManager flight_rm = resource_managers_hash.get("Flights");
+		IResourceManager car_rm = resource_managers_hash.get("Cars");
+		IResourceManager room_rm = resource_managers_hash.get("Rooms");
+
+		boolean result = true;
+
+		// reserve set of flights
+		for(String flightNumber : flightNumbers) {
+			flight_rm.reserveFlight(id, customerID, toInt(flightNumber));
+		}
+		
+		// reserve car and/or room at final location
+		if(car) {
+			car_rm.reserveCar(id, customerID, location);
+		}
+		if(room) {
+			room_rm.reserveRoom(id, customerID, location);
+		}
+
+		
+		return result;
+		
+	}
+
+    public String getName() throws RemoteException {
+		return s_serverName;
+	}
+
+	public static int toInt(String string) throws NumberFormatException
+	{
+		return (Integer.valueOf(string)).intValue();
+	}
+	
     
 }
