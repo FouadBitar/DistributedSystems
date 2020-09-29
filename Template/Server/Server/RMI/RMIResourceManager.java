@@ -17,16 +17,9 @@ import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 
 // Questions:
-// - Why do we have to extend ResourceManager here? 
 // - When we run the run_server.sh command, I know the rmi process is running as a separate process,
-//  	but why is our server "running", it does not have a continuous thread, in the main function we 
+//  	but why how is our server "running", it does not have a continuous thread, in the main function we 
 // 		just have the object created, binded to the registry on port 1095.
-// 
-// Understanding:
-// - RMIResourceManager is actual server object
-// - server object is cast to IResourceManager interface and stub is generated
-// - registry is created and stub is bound to the server name (s_rmiPrefix + s_serverName)
-// - hook is setup to listen for shutdown of process to unbind the name to the object
 public class RMIResourceManager extends ResourceManager 
 {
 	private static String s_serverName = "Server";

@@ -15,8 +15,10 @@ import java.rmi.server.UnicastRemoteObject;
 
 
 /**
- * - Created another server "Customers" as the resource manager for customers. It's job is 
- * 		to store the customers data.
+ * - Dealing with customers through replication of customer data. I.e. when a customer is created,
+ * 		they are created with the same cid on all three resource manager servers. Each resource manager will keep
+ * 		track fo the resources that the customer interacts with. When we require information on all three, we 
+ * 		would manipulate it either her in the middleware or another resource manager if complexity increases.
  */
 public class RMIMiddleware implements IResourceManager {
 
