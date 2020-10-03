@@ -4,7 +4,6 @@ import Server.Interface.*;
 
 import java.util.*;
 
-import Client.Message;
 
 import java.io.*;
 import java.rmi.RemoteException;
@@ -127,17 +126,15 @@ public abstract class Client
 
 				
 				outToServer.println(arguments.toString());
-				
-				
-				
+				String res = inFromServer.readLine();
+				Boolean resBool = toBooleanInt(toInt(res));
 
-				/*
-				if (m_resourceManager.addFlight(id, flightNum, flightSeats, flightPrice)) {
+				if(resBool) {
 					System.out.println("Flight added");
 				} else {
 					System.out.println("Flight could not be added");
 				}
-				*/
+				
 				break;
 			}
 			case AddCars: {
@@ -153,11 +150,16 @@ public abstract class Client
 				int numCars = toInt(arguments.elementAt(3));
 				int price = toInt(arguments.elementAt(4));
 
-				if (m_resourceManager.addCars(id, location, numCars, price)) {
+				outToServer.println(arguments.toString());
+				String res = inFromServer.readLine();
+				Boolean resBool = toBooleanInt(toInt(res));
+
+				if(resBool) {
 					System.out.println("Cars added");
 				} else {
 					System.out.println("Cars could not be added");
 				}
+
 				break;
 			}
 			case AddRooms: {
@@ -173,11 +175,16 @@ public abstract class Client
 				int numRooms = toInt(arguments.elementAt(3));
 				int price = toInt(arguments.elementAt(4));
 
-				if (m_resourceManager.addRooms(id, location, numRooms, price)) {
+				outToServer.println(arguments.toString());
+				String res = inFromServer.readLine();
+				Boolean resBool = toBooleanInt(toInt(res));
+
+				if(resBool) {
 					System.out.println("Rooms added");
 				} else {
 					System.out.println("Rooms could not be added");
 				}
+
 				break;
 			}
 			case AddCustomer: {
@@ -186,7 +193,12 @@ public abstract class Client
 				System.out.println("Adding a new customer [xid=" + arguments.elementAt(1) + "]");
 
 				int id = toInt(arguments.elementAt(1));
-				int customer = m_resourceManager.newCustomer(id);
+
+				outToServer.println(arguments.toString());
+				String res = inFromServer.readLine();
+				int resInt = toInt(res);
+
+				int customer = resInt;
 
 				System.out.println("Add customer ID: " + customer);
 				break;
@@ -200,11 +212,16 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				int customerID = toInt(arguments.elementAt(2));
 
-				if (m_resourceManager.newCustomer(id, customerID)) {
+				outToServer.println(arguments.toString());
+				String res = inFromServer.readLine();
+				Boolean resBool = toBooleanInt(toInt(res));
+
+				if(resBool) {
 					System.out.println("Add customer ID: " + customerID);
 				} else {
 					System.out.println("Customer could not be added");
 				}
+
 				break;
 			}
 			case DeleteFlight: {
@@ -216,11 +233,16 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				int flightNum = toInt(arguments.elementAt(2));
 
-				if (m_resourceManager.deleteFlight(id, flightNum)) {
+				outToServer.println(arguments.toString());
+				String res = inFromServer.readLine();
+				Boolean resBool = toBooleanInt(toInt(res));
+
+				if(resBool) {
 					System.out.println("Flight Deleted");
 				} else {
 					System.out.println("Flight could not be deleted");
 				}
+				
 				break;
 			}
 			case DeleteCars: {
@@ -232,11 +254,16 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
-				if (m_resourceManager.deleteCars(id, location)) {
+				outToServer.println(arguments.toString());
+				String res = inFromServer.readLine();
+				Boolean resBool = toBooleanInt(toInt(res));
+
+				if(resBool) {
 					System.out.println("Cars Deleted");
 				} else {
 					System.out.println("Cars could not be deleted");
 				}
+
 				break;
 			}
 			case DeleteRooms: {
@@ -248,11 +275,16 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
-				if (m_resourceManager.deleteRooms(id, location)) {
+				outToServer.println(arguments.toString());
+				String res = inFromServer.readLine();
+				Boolean resBool = toBooleanInt(toInt(res));
+
+				if(resBool) {
 					System.out.println("Rooms Deleted");
 				} else {
 					System.out.println("Rooms could not be deleted");
 				}
+
 				break;
 			}
 			case DeleteCustomer: {
@@ -264,11 +296,16 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				int customerID = toInt(arguments.elementAt(2));
 
-				if (m_resourceManager.deleteCustomer(id, customerID)) {
+				outToServer.println(arguments.toString());
+				String res = inFromServer.readLine();
+				Boolean resBool = toBooleanInt(toInt(res));
+
+				if(resBool) {
 					System.out.println("Customer Deleted");
 				} else {
 					System.out.println("Customer could not be deleted");
 				}
+
 				break;
 			}
 			case QueryFlight: {
@@ -280,7 +317,11 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				int flightNum = toInt(arguments.elementAt(2));
 
-				int seats = m_resourceManager.queryFlight(id, flightNum);
+				outToServer.println(arguments.toString());
+				String res = inFromServer.readLine();
+				int resInt = toInt(res);
+
+				int seats = resInt;
 				System.out.println("Number of seats available: " + seats);
 				break;
 			}
@@ -293,7 +334,11 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
-				int numCars = m_resourceManager.queryCars(id, location);
+				outToServer.println(arguments.toString());
+				String res = inFromServer.readLine();
+				int resInt = toInt(res);
+
+				int numCars = resInt;
 				System.out.println("Number of cars at this location: " + numCars);
 				break;
 			}
@@ -306,7 +351,11 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
-				int numRoom = m_resourceManager.queryRooms(id, location);
+				outToServer.println(arguments.toString());
+				String res = inFromServer.readLine();
+				int resInt = toInt(res);
+
+				int numRoom = resInt;
 				System.out.println("Number of rooms at this location: " + numRoom);
 				break;
 			}
@@ -319,7 +368,14 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				int customerID = toInt(arguments.elementAt(2));
 
-				String bill = m_resourceManager.queryCustomerInfo(id, customerID);
+				outToServer.println(arguments.toString());
+
+				// Error occuring here
+				String res, bill = "";
+				while((res = inFromServer.readLine()) != null) {
+					bill += res;
+				}
+				
 				System.out.print(bill);
 				break;               
 			}
@@ -332,7 +388,11 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				int flightNum = toInt(arguments.elementAt(2));
 
-				int price = m_resourceManager.queryFlightPrice(id, flightNum);
+				outToServer.println(arguments.toString());
+				String res = inFromServer.readLine();
+				int resInt = toInt(res);
+
+				int price = resInt;
 				System.out.println("Price of a seat: " + price);
 				break;
 			}
@@ -345,7 +405,11 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
-				int price = m_resourceManager.queryCarsPrice(id, location);
+				outToServer.println(arguments.toString());
+				String res = inFromServer.readLine();
+				int resInt = toInt(res);
+
+				int price = resInt;
 				System.out.println("Price of cars at this location: " + price);
 				break;
 			}
@@ -358,7 +422,11 @@ public abstract class Client
 				int id = toInt(arguments.elementAt(1));
 				String location = arguments.elementAt(2);
 
-				int price = m_resourceManager.queryRoomsPrice(id, location);
+				outToServer.println(arguments.toString());
+				String res = inFromServer.readLine();
+				int resInt = toInt(res);
+
+				int price = resInt;
 				System.out.println("Price of rooms at this location: " + price);
 				break;
 			}
@@ -373,11 +441,16 @@ public abstract class Client
 				int customerID = toInt(arguments.elementAt(2));
 				int flightNum = toInt(arguments.elementAt(3));
 
-				if (m_resourceManager.reserveFlight(id, customerID, flightNum)) {
+				outToServer.println(arguments.toString());
+				String res = inFromServer.readLine();
+				Boolean resBool = toBooleanInt(toInt(res));
+
+				if(resBool) {
 					System.out.println("Flight Reserved");
 				} else {
 					System.out.println("Flight could not be reserved");
 				}
+
 				break;
 			}
 			case ReserveCar: {
@@ -391,11 +464,16 @@ public abstract class Client
 				int customerID = toInt(arguments.elementAt(2));
 				String location = arguments.elementAt(3);
 
-				if (m_resourceManager.reserveCar(id, customerID, location)) {
+				outToServer.println(arguments.toString());
+				String res = inFromServer.readLine();
+				Boolean resBool = toBooleanInt(toInt(res));
+
+				if(resBool) {
 					System.out.println("Car Reserved");
 				} else {
 					System.out.println("Car could not be reserved");
 				}
+
 				break;
 			}
 			case ReserveRoom: {
@@ -409,11 +487,16 @@ public abstract class Client
 				int customerID = toInt(arguments.elementAt(2));
 				String location = arguments.elementAt(3);
 
-				if (m_resourceManager.reserveRoom(id, customerID, location)) {
+				outToServer.println(arguments.toString());
+				String res = inFromServer.readLine();
+				Boolean resBool = toBooleanInt(toInt(res));
+
+				if(resBool) {
 					System.out.println("Room Reserved");
 				} else {
 					System.out.println("Room could not be reserved");
 				}
+
 				break;
 			}
 			case Bundle: {
@@ -488,5 +571,10 @@ public abstract class Client
 	public static boolean toBoolean(String string)// throws Exception
 	{
 		return (Boolean.valueOf(string)).booleanValue();
+	}
+
+	public static boolean toBooleanInt(int number)// throws Exception
+	{
+		return (number == 0 ? false : true);
 	}
 }

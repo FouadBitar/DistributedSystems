@@ -42,7 +42,6 @@ public class RMIClient extends Client
 		// Get a reference to the RMIRegister
 		try {
 			RMIClient client = new RMIClient();
-			// client.connectServer();
 			client.start();
 		} 
 		catch (Exception e) {    
@@ -50,12 +49,6 @@ public class RMIClient extends Client
 			e.printStackTrace();
 			System.exit(1);
 		}
-
-
-
-
-
-
 
 	}
 
@@ -69,33 +62,5 @@ public class RMIClient extends Client
 		
 	}
 
-	/*
-	public void connectServer(String server, int port, String name)
-	{
-		try {
-			boolean first = true;
-			while (true) {
-				try {
-					Registry registry = LocateRegistry.getRegistry(server, port);
-					m_resourceManager = (IResourceManager)registry.lookup(s_rmiPrefix + name);
-					System.out.println("Connected to '" + name + "' server [" + server + ":" + port + "/" + s_rmiPrefix + name + "]");
-					break;
-				}
-				catch (NotBoundException|RemoteException e) {
-					if (first) {
-						System.out.println("Waiting for '" + name + "' server [" + server + ":" + port + "/" + s_rmiPrefix + name + "]");
-						first = false;
-					}
-				}
-				Thread.sleep(500);
-			}
-		}
-		catch (Exception e) {
-			System.err.println((char)27 + "[31;1mServer exception: " + (char)27 + "[0mUncaught exception");
-			e.printStackTrace();
-			System.exit(1);
-		}
-	}
-	*/
 }
 

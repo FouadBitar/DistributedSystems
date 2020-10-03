@@ -13,6 +13,7 @@ import java.rmi.server.UnicastRemoteObject;
 
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.net.UnknownHostException;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.io.ObjectInputStream;
@@ -20,28 +21,36 @@ import java.io.ObjectOutputStream;
 import java.io.IOException;
 import java.io.PrintWriter;
 
-
-
 /**
- * - Dealing with customers through replication of customer data. I.e. when a customer is created,
- * 		they are created with the same cid on all three resource manager servers. Each resource manager will keep
- * 		track fo the resources that the customer interacts with. When we require information on all three, we 
- * 		would manipulate it either her in the middleware or another resource manager if complexity increases.
+ * - Dealing with customers through replication of customer data. I.e. when a
+ * customer is created, they are created with the same cid on all three resource
+ * manager servers. Each resource manager will keep track fo the resources that
+ * the customer interacts with. When we require information on all three, we
+ * would manipulate it either her in the middleware or another resource manager
+ * if complexity increases.
  */
 public class RMIMiddleware implements IResourceManager {
 
-    private static final int s_serverPort = 1095;
-    private static String s_serverName = "Server";
+	private static final int s_serverPort = 1095;
+	private static String s_serverName = "Server";
 	private static String s_rmiPrefix = "group_49_";
 	// private static String s_serverHost = "localhost";
-	
+
 	// Resource Managers
 	// private static Vector<String> serverNames;
 	private static Vector<String> serverHosts;
 	private static Vector<String> serverNames;
 	private static HashMap<String, IResourceManager> resource_managers_hash;
-    
-    public static void main(String args[])
+
+	// connection to resource managers
+	private static PrintWriter outToFlights = null;
+	private static BufferedReader inFromFlights = null;
+	private static PrintWriter outToCars = null;
+	private static BufferedReader inFromCars = null;
+	private static PrintWriter outToRooms = null;
+	private static BufferedReader inFromRooms = null;
+
+	public static void main(String args[]) throws UnknownHostException, IOException
 	{
 		// Initialize variables
 		serverHosts = new Vector<String>();
@@ -51,13 +60,40 @@ public class RMIMiddleware implements IResourceManager {
 		serverNames.add("Rooms");
 		resource_managers_hash = new HashMap<String, IResourceManager>();
 
+		// Retrieve the resource manager server names from command line arguments
+		if (args.length == 3)
+		{
+			serverHosts.add(args[0]);
+			serverHosts.add(args[1]);
+			serverHosts.add(args[2]);
+			
+		}
+		else
+		{
+			System.err.println((char)27 + "need 4 arguments exactly");
+			System.exit(1);
+		}
+
+
+		// establish a socket with the rm servers
+		Socket socket_flights = new Socket(serverHosts.elementAt(0), 9090); 
+		Socket socket_cars = new Socket(serverHosts.elementAt(1), 9090); 
+		Socket socket_rooms = new Socket(serverHosts.elementAt(2), 9090); 
+
+		outToFlights = new PrintWriter(socket_flights.getOutputStream(),true); 
+		inFromFlights = new BufferedReader(new InputStreamReader(socket_flights.getInputStream()));
+		outToCars = new PrintWriter(socket_cars.getOutputStream(),true); 
+		inFromCars = new BufferedReader(new InputStreamReader(socket_cars.getInputStream()));
+		outToRooms = new PrintWriter(socket_rooms.getOutputStream(),true); 
+		inFromRooms = new BufferedReader(new InputStreamReader(socket_rooms.getInputStream()));
+
 
 		// Create a new Server object
 		RMIMiddleware server = new RMIMiddleware();
 		try
 		{
 			//establish connection with the 3 resource managers
-
+			
 
 			//comment this line and uncomment the next one to run in multiple threads.
 			// server.runServer();
@@ -75,37 +111,12 @@ public class RMIMiddleware implements IResourceManager {
 		
 	}
 
-	/*
-	public void runServer() throws IOException, ClassNotFoundException
-	{
-		ServerSocket serverSocket = new ServerSocket(9090); 
-		System.out.println("Server ready...");
-		
-		while (true) {
-			System.out.println("looped around");
-			String message = null;
-			Socket socket = serverSocket.accept();
-			try
-			{
-				BufferedReader inFromClient= new BufferedReader(new InputStreamReader(socket.getInputStream())); 
-				PrintWriter outToClient = new PrintWriter(socket.getOutputStream(), true); 
-				while ((message = inFromClient.readLine())!=null) {
-					Vector<String> messVector = convertMessageToVector(message);  
-					// switch over the first argument and call on the correct server
-
-				}
-			}
-			catch (IOException e) {}
-		}
-	}
-	*/
-
 	public Vector<String> convertMessageToVector(String m) {
 		Vector<String> messVector = new Vector<String>();
 		String subMess = m.substring(1, m.length()-1);
 		String[] delinMess = subMess.split(",");
 		for(String s : delinMess) {
-			messVector.add(s);
+			messVector.add(s.trim());
 		}
 		return messVector;
 	}
@@ -147,13 +158,159 @@ public class RMIMiddleware implements IResourceManager {
 					for(String s : messVector) {
 						System.out.println(s);
 					}
-					// switch over the first argument and call on the correct server
+					String cmnd = messVector.elementAt(0);
+					// switch over the first argument and call on the correct server with the same string
+					if(cmnd.equalsIgnoreCase(Command.AddFlight.name())) {
+						outToFlights.println(messVector.toString());
+						String res = inFromFlights.readLine();
+						outToClient.println(res);
+					}
+					else if(cmnd.equalsIgnoreCase(Command.AddCars.name())) {
+						outToCars.println(messVector.toString());
+						String res = inFromCars.readLine();
+						outToClient.println(res);
+					}
+					else if(cmnd.equalsIgnoreCase(Command.AddRooms.name())) {
+						outToRooms.println(messVector.toString());
+						String res = inFromRooms.readLine();
+						outToClient.println(res);
+					}
+					else if(cmnd.equalsIgnoreCase(Command.AddCustomer.name())) {
+						outToFlights.println(messVector.toString());
+						String res = inFromFlights.readLine();
+						int resInt = toInt(res);
+						System.out.println("created customer with id: " + resInt);
+						messVector.setElementAt("AddCustomerID", 0);
+						messVector.addElement(Integer.toString(resInt));
+						outToCars.println(messVector.toString());
+						inFromCars.readLine();
+						outToRooms.println(messVector.toString());
+						inFromRooms.readLine();
+						outToClient.println(resInt);
+					}
+					else if(cmnd.equalsIgnoreCase(Command.AddCustomerID.name())) {
+						outToFlights.println(messVector.toString());
+						outToCars.println(messVector.toString());
+						outToRooms.println(messVector.toString());
+						String res_flights = inFromFlights.readLine();
+						inFromCars.readLine();
+						inFromRooms.readLine();
+						outToClient.println(res_flights);
+					}
+					else if(cmnd.equalsIgnoreCase(Command.DeleteFlight.name())) {
+						outToFlights.println(messVector.toString());
+						String res = inFromFlights.readLine();
+						outToClient.println(res);
+					}
+					else if(cmnd.equalsIgnoreCase(Command.DeleteCars.name())) {
+						outToCars.println(messVector.toString());
+						String res = inFromCars.readLine();
+						outToClient.println(res);
+					}
+					else if(cmnd.equalsIgnoreCase(Command.DeleteRooms.name())) {
+						outToRooms.println(messVector.toString());
+						String res = inFromRooms.readLine();
+						outToClient.println(res);
+					}
+					else if(cmnd.equalsIgnoreCase(Command.QueryFlight.name())) {
+						outToFlights.println(messVector.toString());
+						String res = inFromFlights.readLine();
+						outToClient.println(res);
+					}
+					else if(cmnd.equalsIgnoreCase(Command.QueryCars.name())) {
+						outToCars.println(messVector.toString());
+						String res = inFromCars.readLine();
+						outToClient.println(res);
+					}
+					else if(cmnd.equalsIgnoreCase(Command.QueryRooms.name())) {
+						outToRooms.println(messVector.toString());
+						String res = inFromRooms.readLine();
+						outToClient.println(res);
+					}
+					else if(cmnd.equalsIgnoreCase(Command.QueryFlightPrice.name())) {
+						outToFlights.println(messVector.toString());
+						String res = inFromFlights.readLine();
+						outToClient.println(res);
+					}
+					else if(cmnd.equalsIgnoreCase(Command.QueryCarsPrice.name())) {
+						outToCars.println(messVector.toString());
+						String res = inFromCars.readLine();
+						outToClient.println(res);
+					}
+					else if(cmnd.equalsIgnoreCase(Command.QueryRoomsPrice.name())) {
+						outToRooms.println(messVector.toString());
+						String res = inFromRooms.readLine();
+						outToClient.println(res);
+					}
+					else if(cmnd.equalsIgnoreCase(Command.DeleteCustomer.name())) {
+						outToFlights.println(messVector.toString());
+						outToCars.println(messVector.toString());
+						outToRooms.println(messVector.toString());
+						String res = inFromRooms.readLine();
+						inFromCars.readLine();
+						inFromRooms.readLine();
+						outToClient.println(res);
+					}
+					else if(cmnd.equalsIgnoreCase(Command.QueryCustomer.name())) {
+						outToFlights.println(messVector.toString());
+						String res = "";
+						String res2 = "";
+						
+						StringBuilder bill = new StringBuilder();
+						
+						// Error occuring here where result string is empty
+						while(inFromFlights.ready() && ((res = inFromFlights.readLine()) != null)) {
+							System.out.println(res);
+							bill.append(res);
+						}
+						System.out.println(bill);
+						
+						
+						// //query customer on all servers
+						// outToCars.println(messVector.toString());
+						// res = inFromCars.readLine();
+						// bill += res;
+						// System.out.println("bill2" + res);
+
+						// outToRooms.println(messVector.toString());
+						// res = inFromRooms.readLine();
+						// bill += res;
+						// System.out.println("bill3" + res);
+						
+						
+						outToClient.println(bill);
+					}
+					else if(cmnd.equalsIgnoreCase(Command.ReserveFlight.name())) {
+						outToFlights.println(messVector.toString());
+						String res = inFromFlights.readLine();
+						outToClient.println(res);
+					}
+					else if(cmnd.equalsIgnoreCase(Command.ReserveCar.name())) {
+						outToCars.println(messVector.toString());
+						String res = inFromCars.readLine();
+						outToClient.println(res);
+					}
+					else if(cmnd.equalsIgnoreCase(Command.ReserveRoom.name())) {
+						outToRooms.println(messVector.toString());
+						String res = inFromRooms.readLine();
+						outToClient.println(res);
+					}
+					
 
 				}
 				socket.close();
 			}
 			catch (IOException e) {}
 		}
+	}
+
+	public static boolean toBoolean(String string)// throws Exception
+	{
+		return (Boolean.valueOf(string)).booleanValue();
+	}
+	public static boolean toBooleanInt(int number)// throws Exception
+	{
+		return (number == 0 ? false : true);
 	}
 
 	
