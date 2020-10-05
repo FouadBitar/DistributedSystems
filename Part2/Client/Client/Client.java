@@ -125,6 +125,7 @@ public abstract class Client
 				int flightPrice = toInt(arguments.elementAt(4));
 
 				
+				
 				outToServer.println(arguments.toString());
 				String res = inFromServer.readLine();
 				Boolean resBool = toBooleanInt(toInt(res));
